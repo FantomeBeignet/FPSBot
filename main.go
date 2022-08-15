@@ -119,16 +119,17 @@ func main() {
 		}
 	})
 
-	tempVoiceChannels := make(map[string]*discordgo.Channel)
+	tempVoiceChannels := make(map[string][]*discordgo.User)
 
 	s.AddHandler(func(s *discordgo.Session, v *discordgo.VoiceStateUpdate) {
 		before := v.BeforeUpdate
 		channelID := v.ChannelID
+		user, err := s.User(v.UserID)
+		if err != nil {
+			log.Fatalf("Error getting user: %s", err)
+		}
+		// Member joins voice creation channel
 		if channelID == voiceChannel && (before == nil || before.ChannelID != voiceChannel) {
-			user, err := s.User(v.UserID)
-			if err != nil {
-				log.Fatalf("Error getting user: %s", err)
-			}
 			username := user.Username
 			log.Printf("%s joined temp chan creation channel", username)
 			ch, err := s.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{
@@ -140,21 +141,38 @@ func main() {
 				log.Fatalf("Error creating voice channel: %s", err)
 			}
 			log.Printf("Created temp channel with ID %s and name %s", ch.ID, fmt.Sprintf("Salon de %s", username))
-			tempVoiceChannels[ch.ID] = ch
-			s.GuildMemberMove(guildID, v.UserID, &ch.ID)
+			tempVoiceChannels[ch.ID] = []*discordgo.User{} // Adds new channel to internal map of temporary channels
+			s.GuildMemberMove(guildID, v.UserID, &ch.ID)   // Moves member to new channel
 		}
+		_, isTemp := tempVoiceChannels[channelID]
+		// If user joins temporary channel
+		if isTemp {
+			tempVoiceChannels[channelID] = append(tempVoiceChannels[channelID], user) // Adds user to temporary channel
+		}
+		// If user was in a channel
 		if before != nil {
-			_, isTemp := tempVoiceChannels[before.ChannelID]
+			beforeChannel, err := s.Channel(before.ChannelID)
+			if err != nil {
+				log.Fatalf("Error getting channel: %s", err)
+			}
+			members, isTemp := tempVoiceChannels[before.ChannelID]
+			// If user was in a temporary channel
 			if isTemp {
-				if v.ChannelID != before.ChannelID {
-					ch, err := s.Channel(before.ChannelID)
-					if err != nil {
-						log.Fatalf("Error getting channel: %s", err)
+				for _, u := range tempVoiceChannels[before.ChannelID] {
+					if u.ID == v.UserID {
+						tempVoiceChannels[before.ChannelID] = append(tempVoiceChannels[before.ChannelID][:0], tempVoiceChannels[before.ChannelID][1:]...) // Removes user from temporary channel in internal map
+						members = append(members[:0], members[1:]...)                                                                                     // Removes user from members list
+						break
 					}
-					if ch.MemberCount == 0 {
-						s.ChannelDelete(before.ChannelID)
-						log.Printf("Deleted temp channel with ID %s", before.ChannelID)
-						delete(tempVoiceChannels, before.ChannelID)
+				}
+				// If user has left channel
+				if v.ChannelID != before.ChannelID {
+					log.Printf("%s left temp chan %s", user.Username, beforeChannel.Name)
+					// If channel is empty
+					if len(members) == 0 {
+						s.ChannelDelete(before.ChannelID) // Deletes channel
+						log.Printf("Deleted temp channel with ID %s and name %s", before.ChannelID, beforeChannel.Name)
+						delete(tempVoiceChannels, before.ChannelID) // Removes channel from internal map
 					}
 				}
 			}
