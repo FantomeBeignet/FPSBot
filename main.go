@@ -130,7 +130,7 @@ func main() {
 				log.Fatalf("Error getting user: %s", err)
 			}
 			username := user.Username
-			log.Printf("%s joined channel", username)
+			log.Printf("%s joined temp chan creation channel", username)
 			ch, err := s.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{
 				Name:     fmt.Sprintf("Salon de %s", username),
 				Type:     discordgo.ChannelTypeGuildVoice,
@@ -139,7 +139,7 @@ func main() {
 			if err != nil {
 				log.Fatalf("Error creating voice channel: %s", err)
 			}
-			log.Println("Created channel", ch.ID)
+			log.Printf("Created temp channel with ID %s and name %s", ch.ID, fmt.Sprintf("Salon de %s", username))
 			tempVoiceChannels[ch.ID] = ch
 			s.GuildMemberMove(guildID, v.UserID, &ch.ID)
 		}
@@ -153,7 +153,7 @@ func main() {
 					}
 					if ch.MemberCount == 0 {
 						s.ChannelDelete(before.ChannelID)
-						log.Println("Deleted channel", before.ChannelID)
+						log.Printf("Deleted temp channel with ID %s", before.ChannelID)
 						delete(tempVoiceChannels, before.ChannelID)
 					}
 				}
