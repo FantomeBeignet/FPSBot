@@ -160,10 +160,10 @@ func main() {
 			if isTemp {
 				// If user has left channel
 				if v.ChannelID != before.ChannelID {
-					for _, u := range tempVoiceChannels[before.ChannelID] {
+					for i, u := range tempVoiceChannels[before.ChannelID] {
 						if u.ID == v.UserID {
-							tempVoiceChannels[before.ChannelID] = append(tempVoiceChannels[before.ChannelID][:0], tempVoiceChannels[before.ChannelID][1:]...) // Removes user from temporary channel in internal map
-							members = append(members[:0], members[1:]...)                                                                                     // Removes user from members list
+							tempVoiceChannels[before.ChannelID] = append(tempVoiceChannels[before.ChannelID][:i], tempVoiceChannels[before.ChannelID][i+1:]...) // Removes user from temporary channel in internal map
+							members = append(members[:i], members[i+1:]...)                                                                                     // Removes user from members list
 							break
 						}
 					}
