@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -16,7 +17,9 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	token := os.Getenv("DISCORD_TOKEN")
-	GuildID := os.Getenv("DISCORD_GUILD")
+	guildID := os.Getenv("DISCORD_GUILD")
+	voiceCategory := os.Getenv("VOICE_CATEGORY")
+	voiceChannel := os.Getenv("VOICE_CHANNEL")
 	s, err := discordgo.New("Bot " + token)
 	if err != nil {
 		log.Fatalf("Error creating discord session: %s", err)
@@ -116,6 +119,48 @@ func main() {
 		}
 	})
 
+	tempVoiceChannels := make(map[string]*discordgo.Channel)
+
+	s.AddHandler(func(s *discordgo.Session, v *discordgo.VoiceStateUpdate) {
+		before := v.BeforeUpdate
+		channelID := v.ChannelID
+		if channelID == voiceChannel && (before == nil || before.ChannelID != voiceChannel) {
+			user, err := s.User(v.UserID)
+			if err != nil {
+				log.Fatalf("Error getting user: %s", err)
+			}
+			username := user.Username
+			log.Printf("%s joined channel", username)
+			ch, err := s.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{
+				Name:     fmt.Sprintf("Salon de %s", username),
+				Type:     discordgo.ChannelTypeGuildVoice,
+				ParentID: voiceCategory,
+			})
+			if err != nil {
+				log.Fatalf("Error creating voice channel: %s", err)
+			}
+			log.Println("Created channel", ch.ID)
+			tempVoiceChannels[ch.ID] = ch
+			s.GuildMemberMove(guildID, v.UserID, &ch.ID)
+		}
+		if before != nil {
+			_, isTemp := tempVoiceChannels[before.ChannelID]
+			if isTemp {
+				if v.ChannelID != before.ChannelID {
+					ch, err := s.Channel(before.ChannelID)
+					if err != nil {
+						log.Fatalf("Error getting channel: %s", err)
+					}
+					if ch.MemberCount == 0 {
+						s.ChannelDelete(before.ChannelID)
+						log.Println("Deleted channel", before.ChannelID)
+						delete(tempVoiceChannels, before.ChannelID)
+					}
+				}
+			}
+		}
+	})
+
 	err = s.Open()
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
@@ -124,7 +169,7 @@ func main() {
 	log.Println("Adding commands...")
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
 	for i, v := range commands {
-		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, GuildID, v)
+		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, guildID, v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
 		}
