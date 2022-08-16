@@ -2,14 +2,23 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
 )
+
+type Spinner struct {
+	Key     string `json:"key"`
+	Name    string `json:"name"`
+	Twitter string `json:"twitter,omitempty"`
+	Youtube string `json:"youtube,omitempty"`
+}
 
 func main() {
 	err := godotenv.Load()
@@ -21,6 +30,7 @@ func main() {
 	voiceCategory := os.Getenv("VOICE_CATEGORY")
 	voiceChannel := os.Getenv("VOICE_CHANNEL")
 	s, err := discordgo.New("Bot " + token)
+	spinnerdex_api := os.Getenv("SPINNERDEX_API")
 	if err != nil {
 		log.Fatalf("Error creating discord session: %s", err)
 	}
@@ -49,6 +59,18 @@ func main() {
 		{
 			Name:        "ordre",
 			Description: "Donne un ordre d'apprentissage des tricks pour les débutants",
+		},
+		{
+			Name:        "spinner",
+			Description: "Renvoie les liens vers le Twitter et le Youtube du spinner demandé",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "nom",
+					Description: "Le nom du spinner",
+					Type:        discordgo.ApplicationCommandOptionString,
+					Required:    true,
+				},
+			},
 		},
 	}
 	commandHandlers := map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
@@ -107,7 +129,65 @@ func main() {
 					},
 				},
 			})
-		}}
+		},
+		"spinner": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			name := i.ApplicationCommandData().Options[0].Value
+			query := fmt.Sprintf("%s/spinner/%s", spinnerdex_api, name)
+			info, err := http.Get(query)
+			if err != nil {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "Erreur lors de la récupération des informations du spinner",
+					},
+				})
+				return
+			}
+			defer info.Body.Close()
+			var spinner Spinner
+			err = json.NewDecoder(info.Body).Decode(&spinner)
+			if err != nil {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "Erreur lors de la récupération des informations du spinner",
+					},
+				})
+				return
+			}
+			log.Printf("Spinner %s was requested in SpinnerDex", spinner.Name)
+			if spinner.Twitter == "" {
+				spinner.Twitter = "Aucun Twitter trouvé"
+			}
+			if spinner.Youtube == "" {
+				spinner.Youtube = "Aucun YouTube trouvé"
+			}
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Embeds: []*discordgo.MessageEmbed{
+						{
+							Title: fmt.Sprintf("Voici les liens pour %s :", spinner.Name),
+							Fields: []*discordgo.MessageEmbedField{
+								{
+									Name:  "Twitter",
+									Value: spinner.Twitter,
+								},
+								{
+									Name:  "YouTube",
+									Value: spinner.Youtube,
+								},
+							},
+							Footer: &discordgo.MessageEmbedFooter{
+								Text: "Powered by SpinnerDex",
+							},
+						},
+					},
+				},
+			},
+			)
+		},
+	}
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
