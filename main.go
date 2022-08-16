@@ -39,6 +39,11 @@ func main() {
 		log.Fatalf("Error reading ordre.png: %s", err)
 	}
 	ordre_img_bytes := bytes.NewReader(ordre_img)
+	sdex_img, err := os.ReadFile("resources/Spinnerdex.png")
+	if err != nil {
+		log.Fatalf("Error reading FPSBot.png: %s", err)
+	}
+	sdex_bytes := bytes.NewReader(sdex_img)
 	commands := []*discordgo.ApplicationCommand{
 		{
 			Name:        "v5",
@@ -179,9 +184,16 @@ func main() {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
+					Files: []*discordgo.File{
+						{
+							Name:        "spinnerdex.png",
+							ContentType: "image/png",
+							Reader:      sdex_bytes,
+						},
+					},
 					Embeds: []*discordgo.MessageEmbed{
 						{
-							Title: fmt.Sprintf("Voici les liens pour %s :", spinner.Name),
+							Title: spinner.Name,
 							Fields: []*discordgo.MessageEmbedField{
 								{
 									Name:  "Twitter",
@@ -194,6 +206,9 @@ func main() {
 							},
 							Footer: &discordgo.MessageEmbedFooter{
 								Text: "Powered by SpinnerDex",
+							},
+							Thumbnail: &discordgo.MessageEmbedThumbnail{
+								URL: "attachment://spinnerdex.png",
 							},
 						},
 					},
