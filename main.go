@@ -18,6 +18,7 @@ type Spinner struct {
 	Name    string `json:"name"`
 	Twitter string `json:"twitter,omitempty"`
 	Youtube string `json:"youtube,omitempty"`
+	Board   string `json:"board,omitempty"`
 }
 
 func main() {
@@ -193,7 +194,7 @@ func main() {
 					},
 					Embeds: []*discordgo.MessageEmbed{
 						{
-							Title: spinner.Name,
+							Title: fmt.Sprintf("%s - %s", spinner.Name, spinner.Board),
 							Fields: []*discordgo.MessageEmbedField{
 								{
 									Name:  "Twitter",
