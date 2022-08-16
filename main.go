@@ -155,12 +155,26 @@ func main() {
 				})
 				return
 			}
-			log.Printf("Spinner %s was requested in SpinnerDex", spinner.Name)
+			log.Printf("Spinner %s was requested in SpinnerDex", name)
+			if spinner.Name == "" {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Embeds: []*discordgo.MessageEmbed{
+							{
+								Description: fmt.Sprintf("Le spinner ***%s*** est introuvable", name),
+								Color:       0xFF0000,
+							},
+						},
+					},
+				})
+				return
+			}
 			if spinner.Twitter == "" {
-				spinner.Twitter = "Aucun Twitter trouvé"
+				spinner.Twitter = "*Aucun Twitter trouvé*"
 			}
 			if spinner.Youtube == "" {
-				spinner.Youtube = "Aucun YouTube trouvé"
+				spinner.Youtube = "*Aucun YouTube trouvé*"
 			}
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
