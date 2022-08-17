@@ -85,6 +85,7 @@ func main() {
 	}
 	commandHandlers := map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"v5": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			log.Printf("User %s used command '/v5'", i.Member.User)
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -93,6 +94,7 @@ func main() {
 			})
 		},
 		"v4": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			log.Printf("User %s used command '/v4'", i.Member.User)
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -101,6 +103,7 @@ func main() {
 			})
 		},
 		"v3": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			log.Printf("User %s used command '/v3'", i.Member.User)
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -109,6 +112,7 @@ func main() {
 			})
 		},
 		"v2": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			log.Printf("User %s used command '/v2'", i.Member.User)
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -117,6 +121,7 @@ func main() {
 			})
 		},
 		"ordre": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			log.Printf("User %s used command '/ordre'", i.Member.User)
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -165,7 +170,7 @@ func main() {
 				})
 				return
 			}
-			log.Printf("Spinner %s was requested in SpinnerDex", name)
+			log.Printf("User %s used command '/spinner %s'", i.Member.User, name)
 			if spinner.Name == "" {
 				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -222,7 +227,7 @@ func main() {
 			)
 		},
 		"aide": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			log.Println("Aide command was requested")
+			log.Printf("User %s used command '/aide'", i.Member.User)
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
