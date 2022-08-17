@@ -233,11 +233,11 @@ func main() {
 							Fields: []*discordgo.MessageEmbedField{
 								{
 									Name:  "Commandes",
-									Value: "`/v2`, `/v3`, `/v4` et `/v5` : Donne le lien de la version correspondante du forum\n`/ordre` : Affiche l'ordre d'apprentissage pour les débutants\n`/spinner <nom>` : Affiche les informations sur un spinner",
+									Value: "`/v2`, `/v3`, `/v4` et `/v5` : Donne le lien de la version correspondante du forum\n`/spinner <nom>` : Affiche les informations sur un spinner",
 								},
 								{
 									Name:  "Guides",
-									Value: "*Pas de guides pour le moment, coming soon...*",
+									Value: "`/ordre` : Affiche l'ordre d'apprentissage recommandé pour les débutants",
 								},
 								{
 									Name:  "Autres fonctionnalités",
