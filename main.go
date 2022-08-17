@@ -63,10 +63,6 @@ func main() {
 			Description: "Donne le lien de la v2 du forum",
 		},
 		{
-			Name:        "ordre",
-			Description: "Donne un ordre d'apprentissage des tricks pour les débutants",
-		},
-		{
 			Name:        "spinner",
 			Description: "Renvoie les liens vers le Twitter et le Youtube du spinner demandé",
 			Options: []*discordgo.ApplicationCommandOption{
@@ -81,6 +77,22 @@ func main() {
 		{
 			Name:        "aide",
 			Description: "Affiche les commandes disponibles",
+		},
+		{
+			Name:        "guide",
+			Description: "Guides utiles à l'apprentissage du penspinning",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "all",
+					Description: "Donne la liste de tous les guides disponibles",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+				},
+				{
+					Name:        "ordre",
+					Description: "Ordre d'apprentissage des tricks pour les débutants",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+				},
+			},
 		},
 	}
 	commandHandlers := map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
@@ -117,31 +129,6 @@ func main() {
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Content: "Voici le lien de la v2 du forum : https://thefpsbv2.penspinning.fr/",
-				},
-			})
-		},
-		"ordre": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			log.Printf("User %s used command '/ordre'", i.Member.User)
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-
-					Files: []*discordgo.File{
-						{
-							Name:        "ordre.png",
-							ContentType: "image/png",
-							Reader:      ordre_img_bytes,
-						},
-					},
-					Embeds: []*discordgo.MessageEmbed{
-						{
-							Title:       "Ordre d'apprentissage",
-							Description: "Voici l'ordre d'apprentissage privilégié pour les débutants !",
-							Image: &discordgo.MessageEmbedImage{
-								URL: "attachment://ordre.png",
-							},
-						},
-					},
 				},
 			})
 		},
@@ -252,6 +239,44 @@ func main() {
 						},
 					},
 				},
+			})
+		},
+		"guide": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			options := i.ApplicationCommandData().Options
+			var data *discordgo.InteractionResponseData
+			switch options[0].Name {
+			case "all":
+				data = &discordgo.InteractionResponseData{
+					Embeds: []*discordgo.MessageEmbed{
+						{
+							Title:       "Liste des guides",
+							Description: "`/guide ordre` : Affiche l'ordre d'apprentissage recommandé pour les débutants\nD'autres guides seront bientôt disponibles",
+						},
+					},
+				}
+			case "ordre":
+				data = &discordgo.InteractionResponseData{
+					Files: []*discordgo.File{
+						{
+							Name:        "ordre.png",
+							ContentType: "image/png",
+							Reader:      ordre_img_bytes,
+						},
+					},
+					Embeds: []*discordgo.MessageEmbed{
+						{
+							Title:       "Ordre d'apprentissage",
+							Description: "Voici l'ordre d'apprentissage privilégié pour les débutants !",
+							Image: &discordgo.MessageEmbedImage{
+								URL: "attachment://ordre.png",
+							},
+						},
+					},
+				}
+			}
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: data,
 			})
 		},
 	}
