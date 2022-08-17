@@ -78,6 +78,10 @@ func main() {
 				},
 			},
 		},
+		{
+			Name:        "aide",
+			Description: "Affiche les commandes disponibles",
+		},
 	}
 	commandHandlers := map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"v5": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -217,8 +221,35 @@ func main() {
 			},
 			)
 		},
+		"aide": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			log.Println("Aide command was requested")
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags: uint64(discordgo.MessageFlagsEphemeral),
+					Embeds: []*discordgo.MessageEmbed{
+						{
+							Title: "Aide",
+							Fields: []*discordgo.MessageEmbedField{
+								{
+									Name:  "Commandes",
+									Value: "`/v2`, `/v3`, `/v4` et `/v5` : Donne le lien de la version correspondante du forum\n`/ordre` : Affiche l'ordre d'apprentissage pour les débutants\n`/spinner <nom>` : Affiche les informations sur un spinner",
+								},
+								{
+									Name:  "Guides",
+									Value: "*Pas de guides pour le moment, coming soon...*",
+								},
+								{
+									Name:  "Autres fonctionnalités",
+									Value: "Rejoindre le vocal `Créer un salon` permet de créer un salon vocal temporaire",
+								},
+							},
+						},
+					},
+				},
+			})
+		},
 	}
-
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
 	})
