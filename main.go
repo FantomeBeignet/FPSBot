@@ -178,7 +178,7 @@ func main() {
 			if spinner.Twitter == "" {
 				spinner.Twitter = "*Aucun Twitter trouvé*"
 			} else {
-				profilePic = utils.GetProfilePicture(spinner.Twitter)
+				profilePic = utils.GetTwtProfilePicture(spinner.Twitter)
 			}
 			if spinner.Youtube == "" {
 				spinner.Youtube = "*Aucun YouTube trouvé*"
