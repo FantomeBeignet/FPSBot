@@ -9,6 +9,8 @@ import (
 	"os"
 	"os/signal"
 
+	"fpsbot/utils"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
 )
@@ -172,22 +174,29 @@ func main() {
 				})
 				return
 			}
+			profilePic := "attachment://spinnerdex.png"
 			if spinner.Twitter == "" {
 				spinner.Twitter = "*Aucun Twitter trouvé*"
+			} else {
+				profilePic = utils.GetProfilePicture(spinner.Twitter)
 			}
 			if spinner.Youtube == "" {
 				spinner.Youtube = "*Aucun YouTube trouvé*"
 			}
+			var files []*discordgo.File
+			if profilePic == "attachments://spinnerdex.png" {
+				files = []*discordgo.File{
+					{
+						Name:        "spinnerdex.png",
+						ContentType: "image/png",
+						Reader:      sdex_bytes,
+					},
+				}
+			}
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Files: []*discordgo.File{
-						{
-							Name:        "spinnerdex.png",
-							ContentType: "image/png",
-							Reader:      sdex_bytes,
-						},
-					},
+					Files: files,
 					Embeds: []*discordgo.MessageEmbed{
 						{
 							Title: fmt.Sprintf("%s - %s", spinner.Name, spinner.Board),
@@ -205,7 +214,7 @@ func main() {
 								Text: "Powered by SpinnerDex",
 							},
 							Thumbnail: &discordgo.MessageEmbedThumbnail{
-								URL: "attachment://spinnerdex.png",
+								URL: profilePic,
 							},
 						},
 					},
