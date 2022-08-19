@@ -182,6 +182,8 @@ func main() {
 			}
 			if spinner.Youtube == "" {
 				spinner.Youtube = "*Aucun YouTube trouvé*"
+			} else if profilePic == "attachment://spinnerdex.png" {
+				profilePic = utils.GetYtProfilePicture(spinner.Youtube)
 			}
 			var files []*discordgo.File
 			if profilePic == "attachments://spinnerdex.png" {
